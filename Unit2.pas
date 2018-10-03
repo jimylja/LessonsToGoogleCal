@@ -1,0 +1,317 @@
+unit Unit2;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Grids, inifiles;
+
+type
+//Delete ???????
+  TStringGrid = class(Vcl.Grids.TStringGrid)
+  private
+    function GetCells(ACol, ARow: Integer): string;
+
+    procedure SetCells(ACol, ARow: Integer; const Value: string);
+  public
+    property Cells[ACol, ARow: Integer]: string read GetCells write SetCells;
+  end;
+ // ???????  Delete
+
+  TForm2 = class(TForm)
+    StringGrid1: TStringGrid;
+    GroupBox1: TGroupBox;
+    GroupBox2: TGroupBox;
+    Edit1: TEdit;
+    cbFixDuration: TCheckBox;
+    btnSaveSettings: TButton;
+    AttendeesList: TStringGrid;
+    procedure FormCreate(Sender: TObject);
+    procedure RecalcEndTime(time:string; row: integer);
+    procedure btnSaveSettingsClick(Sender: TObject);
+    procedure Edit1Click(Sender: TObject);
+    procedure Edit1Exit(Sender: TObject);
+    procedure Edit1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure cbFixDurationClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+      Rect: TRect; State: TGridDrawState);
+    procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
+      var CanSelect: Boolean);
+    procedure StringGrid1GetEditText(Sender: TObject; ACol, ARow: Integer;
+      var Value: string);
+    procedure StringGrid2Click(Sender: TObject);
+
+
+
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form2: TForm2;
+  time:string;
+  cl:TColor;
+  Settings: Tinifile; //file with settings
+
+  PrevCol,PrevRow:integer;
+  PrevValue:string;
+
+implementation
+ uses Unit1;
+{$R *.dfm}
+
+
+
+procedure TForm2.btnSaveSettingsClick(Sender: TObject);
+var i:integer;
+begin
+  Settings:=TiniFile.Create(extractfilepath(paramstr(0))+'Settings.ini');
+  for i:=1 to 7 do
+    begin
+      Settings.WriteTime('LessonStart',IntToStr(i),StrToTime(StringGrid1.Cells[1,i]));
+      Settings.WriteTime('LessonEnd',IntToStr(i),StrToTime(StringGrid1.Cells[2,i]));
+    end;
+    Settings.Free;
+end;
+
+procedure TForm2.cbFixDurationClick(Sender: TObject);
+begin
+  if cbFixDuration.Checked then Edit1.Visible:=true
+     else Edit1.Visible:=false;
+  //StringGrid.Options:=StringGrid.Options-[goEditing]
+     StringGrid1.Invalidate;
+  //R := StringGrid1.CellRect(3, 5);
+//InvalidateRect(StringGrid1.Handle, @StringGrid1.CellRect(2, 2), False);
+end;
+
+procedure TForm2.Edit1Click(Sender: TObject);
+begin
+  time:=Edit1.Text;
+  Edit1.Text:='';
+end;
+
+procedure TForm2.Edit1Exit(Sender: TObject);
+  var i:integer;
+begin
+   if (Edit1.Text='') or (Edit1.Text='0') then Edit1.Text:=time;
+    if cbFixDuration.Checked then
+    for i:=1 to 7 do RecalcEndTime(Edit1.Text, i);
+
+end;
+
+procedure TForm2.Edit1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+   ShowHint:=true;
+end;
+
+procedure TForm2.FormCreate(Sender: TObject);
+ var
+  buf, attendee:string;
+  i:integer;
+  SaveSettings:TextFile;
+  s1: TStringList;
+begin
+  Form2.Caption:='Налаштування';
+    time:='45';
+    Edit1.Text:='0';
+
+StringGrid1.Cells[1,0] := 'Початок';
+StringGrid1.Cells[2,0] := 'Кінець';
+  for i:= 1 to 8 do StringGrid1.Cells[0,i]:=IntToStr(i)+' урок';
+
+   //Load from .ini
+   Settings:=TiniFile.Create(extractfilepath(paramstr(0))+'Settings.ini');
+    //    if Settings.ReadBool('ImportFromExcel', 'CreateNew',true)=true then GroupBox2.RadioButton1.Checked:=true
+   //   else GroupBox2.RadioButton2.Checked:=false;
+
+  // Form2.RadioButton2.Checked:=true;
+
+  if (Settings.SectionExists('LessonStart') and Settings.SectionExists('LessonEnd'))then
+      for i:=1 to 7 do begin
+   StringGrid1.Cells[1,i]:=FormatDateTime('hh:mm',Settings.ReadTime('LessonStart', IntToStr(i), StrToTime('08:00:00')));
+   StringGrid1.Cells[2,i]:=FormatDateTime('hh:mm',Settings.ReadTime('LessonEnd', IntToStr(i), StrToTime('08:45:00')));
+                 end
+   else begin
+   StringGrid1.Cells[1,1]:=FormatDateTime('hh:mm',StrToTime('08:00:00'));
+   StringGrid1.Cells[2,1]:=FormatDateTime('hh:mm',StrToTime( StringGrid1.Cells[1,1])+45/(24*60));
+   StringGrid1.Cells[1,2]:=FormatDateTime('hh:mm',StrToTime('08:55:00'));
+   StringGrid1.Cells[2,2]:=FormatDateTime('hh:mm',StrToTime( StringGrid1.Cells[1,2])+45/(24*60));
+   StringGrid1.Cells[1,3]:=FormatDateTime('hh:mm',StrToTime('10:00:00'));
+   StringGrid1.Cells[2,3]:=FormatDateTime('hh:mm',StrToTime( StringGrid1.Cells[1,3])+45/(24*60));
+   StringGrid1.Cells[1,4]:=FormatDateTime('hh:mm',StrToTime('11:05:00'));
+   StringGrid1.Cells[2,4]:=FormatDateTime('hh:mm',StrToTime( StringGrid1.Cells[1,4])+45/(24*60));
+   StringGrid1.Cells[1,5]:=FormatDateTime('hh:mm',StrToTime('12:00:00'));
+   StringGrid1.Cells[2,5]:=FormatDateTime('hh:mm',StrToTime( StringGrid1.Cells[1,5])+45/(24*60));
+   StringGrid1.Cells[1,6]:=FormatDateTime('hh:mm',StrToTime('12:55:00'));
+   StringGrid1.Cells[2,6]:=FormatDateTime('hh:mm',StrToTime( StringGrid1.Cells[1,6])+45/(24*60));
+   StringGrid1.Cells[1,7]:=FormatDateTime('hh:mm',StrToTime('13:45:00'));
+   StringGrid1.Cells[2,7]:=FormatDateTime('hh:mm',StrToTime( StringGrid1.Cells[1,7])+45/(24*60));
+   StringGrid1.Cells[1,8]:=FormatDateTime('hh:mm',StrToTime('14:40:00'));
+   StringGrid1.Cells[2,8]:=FormatDateTime('hh:mm',StrToTime( StringGrid1.Cells[1,8])+45/(24*60));
+
+        end;
+
+   if (Settings.SectionExists('Attendees')) then
+   begin
+     s1 := TStringList.Create;
+     Settings.ReadSectionValues('Attendees',s1);
+
+   for i:=1 to s1.Count do begin
+    attendee:=UTF8ToString(s1[i-1]);
+    AttendeesList.Cells[1,i] :=Copy(attendee, 1, Pos('=',attendee)-1); //до  разделителя
+    AttendeesList.Cells[2,i] :=Copy(attendee, Pos('=',attendee)+2, Length(attendee));//после разделителя (+2) знаки после ; включая ;
+   end;
+   end;
+     s1.Free;
+
+
+
+
+
+ Settings.Free;
+
+
+
+end;
+
+
+procedure TForm2.FormShow(Sender: TObject);
+begin
+  Form2.Top:=Form1.Top+50;
+  Form2.Left:=Form1.Left+50;
+end;
+
+procedure TForm2.RecalcEndTime(time:string; row: integer);
+var i:integer;
+def:Tdate;
+begin
+ // for i:=1 to 7 do StringGrid1.Cells[2,i]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[1,i])+(StrToInt(Edit2.Text))/(24*60));
+ if (row <> 8) then
+  def:=StrToTime(StringGrid1.Cells[1,row+1])-StrToTime(StringGrid1.Cells[2,row]);
+  StringGrid1.Cells[2,row]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[1,row])+(StrToInt(Edit1.Text))/(24*60));
+ if (row <> 8) then
+ StringGrid1.Cells[1,row+1]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[2,row])+def);
+end;
+
+
+
+
+
+procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+  Rect: TRect; State: TGridDrawState);
+ type
+  TSave = record
+    FontColor : TColor;
+    FontStyle : TFontStyles;
+    BrColor : TColor;
+  end;
+var
+  Sg : TStringGrid;
+  Save : TSave;
+  Flag : Integer;
+begin
+  with StringGrid1, StringGrid1.Canvas do
+if ((cbFixDuration.Checked) and (ACol=2) and (ARow<>0)) then
+  begin
+  Canvas.Brush.Color:=$00A4A4A4;
+  FillRect(Rect);
+  Canvas.Font.Color:=$002C2C2C;
+  TextOut(Rect.Left+2, Rect.Top+2, Cells[ACol, ARow]);
+ end;
+
+  //Sg := Sender as TStringGrid;
+  ////Читаем значение флага, которое записано под видом указателя на объект.
+  //Flag := Integer(Sg.Rows[ARow].Objects[ACol]);
+  ////Если флаг не равен 1 - выходим.
+  //if Flag <> 1 then Exit;
+  ////В противном случае, изменяем цвет ячейки.
+  //with Sg.Canvas, Save do begin
+  //  //Запоминаем параметры шрифта и кисти.
+  //  FontColor := Font.Color;
+  //  FontStyle := Font.Style;
+  //  BrColor := Brush.Color;
+  //
+  //  //Устанавливаем новые парметры.
+  //
+  //  //Цвет шрифта - белый.
+  //  Font.Color := clGreen;
+  //  //Стиль шрифта - жирный.
+  //  Font.Style := Font.Style + [fsBold];
+  //  //Цвет кисти - коричневый.
+  //  Brush.Color := clRed;
+  //
+  //  //Прорисовываем ячейку.
+  //
+  //  //Заливаем квадрат ячейки цветом кисти.
+  //  FillRect(aRect);
+  //  //Прорисовываем в ячейке текст. Здесь +2 - так мы задаём ширину полей в ячейке.
+  //  TextOut(aRect.Left + 2, aRect.Top + 2, Sg.Cells[ACol, ARow]);
+  //
+  //  //Восстанавливаем прежние параметры канвы.
+  //  Font.Color := FontColor;
+  //  Font.Style := FontStyle;
+  //  Brush.Color := BrColor;
+  //end;
+
+end;
+
+procedure TForm2.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
+  var CanSelect: Boolean);
+begin
+  if(ARow<9)and(ACol=2) and cbFixDuration.Checked
+      then StringGrid1.Options:=StringGrid1.Options-[goEditing]
+      else StringGrid1.Options:=StringGrid1.Options+[goEditing];
+  if (PrevValue<>'') then
+      begin
+      
+  if (StringGrid1.Cells[PrevCol,PrevRow]='') then StringGrid1.Cells[PrevCol,PrevRow]:=PrevValue;
+  if (PrevValue<>StringGrid1.Cells[PrevCol,PrevRow]) then
+    begin
+    //  ShowMessage('StartRecal= '+StringGrid1.Cells[PrevCol,PrevRow]+'  '+IntToStr(PrevRow));
+      RecalcEndTime(StringGrid1.Cells[PrevCol,PrevRow], PrevRow);
+     end;
+       end;
+   PrevCol:=ACol;
+   PrevRow:=ARow;
+   PrevValue:=StringGrid1.Cells[ACol,ARow];
+   
+end;
+
+
+
+
+ procedure TForm2.StringGrid2Click(Sender: TObject);
+begin
+
+end;
+
+//Delete ???????
+function TStringGrid.GetCells(ACol, ARow: Integer): string;
+begin
+  Result:=inherited Cells[ACol, ARow];
+  //ShowMessage('GetCells='+Result);
+end;
+
+
+//Delete ???????
+procedure TStringGrid.SetCells(ACol, ARow: Integer; const Value: string);
+begin
+  //ShowMessage('SetCells='+Value);
+  inherited Cells[ACol, ARow]:=Value;
+end;
+
+
+procedure TForm2.StringGrid1GetEditText(Sender: TObject; ACol, ARow: Integer;
+  var Value: string);
+begin
+   PrevCol:=ACol;
+   PrevRow:=ARow;
+   PrevValue:=StringGrid1.Cells[ACol,ARow];
+end;
+
+end.

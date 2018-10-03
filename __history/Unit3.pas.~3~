@@ -1,0 +1,65 @@
+unit Unit3;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.OleCtrls, SHDocVw, Vcl.StdCtrls;
+
+type
+  TForm3 = class(TForm)
+    PopupBrowser: TWebBrowser;
+    procedure PopupBrowserDocumentComplete(ASender: TObject;
+      const pDisp: IDispatch; const URL: OleVariant);
+  private
+    { Private declarations }
+    procedure wbBeforeNavigate2(ASender: TObject;
+      const pDisp: IDispatch; const URL, Flags, TargetFrameName, PostData,
+      Headers: OleVariant; var Cancel: WordBool);
+
+  public
+    { Public declarations }
+  end;
+
+var
+  Form3: TForm3;
+
+implementation
+ uses Unit1;
+{$R *.dfm}
+
+
+// Реализация твоих обработчиков
+procedure TForm3.wbBeforeNavigate2(ASender: TObject;
+  const pDisp: IDispatch; const URL, Flags, TargetFrameName, PostData,
+  Headers: OleVariant; var Cancel: WordBool);
+begin
+  Caption := URL;
+  //Cancel := TRUE;
+end;
+
+
+
+procedure TForm3.PopupBrowserDocumentComplete(ASender: TObject;
+  const pDisp: IDispatch; const URL: OleVariant);
+    var access:string; i, post:integer;
+begin
+     //Form3.Close;
+ //
+ //    for I := 0 to PopupBrowser.OleObject.Document.all.tags('input').length - 1 do
+ //  begin
+ //    try
+ //  if (PopupBrowser.OleObject.Document.all.tags('input').item(i).value='Кликнуть') then
+ //  PopupBrowser.OleObject.Document.all.tags('input').item(i).click;
+ //  except
+ //  end;
+
+//    (ASender as TWebBrowser).OnBeforeNavigate2 := wbBeforeNavigate2;
+
+     access:=Trim(String(PopupBrowser.LocationURL));
+     //post:=Pos('code=', access)+5;
+     //access:=Copy(access, post, (Length(access)-post));
+     Form1.edToken.Text:=access; //Delete !!!
+end;
+
+end.
