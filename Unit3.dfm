@@ -2,7 +2,7 @@ object Form3: TForm3
   Left = 0
   Top = 0
   Caption = 'Form3'
-  ClientHeight = 434
+  ClientHeight = 429
   ClientWidth = 585
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -11,29 +11,20 @@ object Form3: TForm3
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
   object PopupBrowser: TWebBrowser
-    Left = 16
-    Top = 24
-    Width = 545
-    Height = 385
+    Left = 0
+    Top = 0
+    Width = 585
+    Height = 426
     TabOrder = 0
     OnDocumentComplete = PopupBrowserDocumentComplete
     ControlData = {
-      4C00000054380000CA2700000000000000000000000000000000000000000000
+      4C000000763C0000072C00000000000000000000000000000000000000000000
       000000004C000000000000000000000001000000E0D057007335CF11AE690800
       2B2E126208000000000000004C0000000114020000000000C000000000000046
       8000000000000000000000000000000000000000000000000000000000000000
       00000000000000000100000000000000000000000000000000000000}
-  end
-  object Edit1: TEdit
-    Left = 64
-    Top = 415
-    Width = 121
-    Height = 21
-    TabOrder = 1
-    Text = 'Edit1'
   end
 end

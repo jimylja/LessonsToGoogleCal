@@ -9,10 +9,8 @@ uses
 type
   TForm3 = class(TForm)
     PopupBrowser: TWebBrowser;
-    Edit1: TEdit;
     procedure PopupBrowserDocumentComplete(ASender: TObject;
       const pDisp: IDispatch; const URL: OleVariant);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
   public
@@ -59,20 +57,13 @@ begin
 end;
 
 
-procedure TForm3.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-ShowMessage('b,mn,m');
-end;
-
 procedure TForm3.PopupBrowserDocumentComplete(ASender: TObject;
   const pDisp: IDispatch; const URL: OleVariant);
     var  i, post:integer;
     field: IHTMLElement;
     inputField: IHTMLInputElement;
 begin
-Form3.Edit1.Text:=Trim(String(PopupBrowser.LocationURL));
-
-    field := GetElementById(PopupBrowser.Document, 'code') as IHTMLElement;
+  field := GetElementById(PopupBrowser.Document, 'code') as IHTMLElement;
   if Assigned(field) then
      if field.tagName = 'INPUT' then
         begin
@@ -82,7 +73,15 @@ Form3.Edit1.Text:=Trim(String(PopupBrowser.LocationURL));
          then access:=Trim(String(inputField.value));
         end;
      Form1.edToken.Text:=access; //Delete !!!
-    if(access<>'') then Form3.Close;
+    if(access<>'') then begin
+      Form3.Close;
+      Form1.btnConfirm.Enabled:=false;
+      Form1.GoogleAuthThread:=TGoogleAuthThread.Create(true);
+      Form1.GoogleAuthThread.Priority:=tpNormal;
+      Form1.GoogleAuthThread.FormHandle := Self.Handle;
+      Form1.GoogleAuthThread.FreeOnTerminate := false;
+      Form1.GoogleAuthThread.Resume;
+    end;
 end;
 
 end.

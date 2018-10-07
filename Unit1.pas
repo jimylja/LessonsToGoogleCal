@@ -8,7 +8,9 @@ uses
   GoogleOAuth, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, DBXJSON,
   IdHTTP, IdIOHandler, IdStack, IdException, IdIOHandlerSocket, IdIOHandlerStack, IdSSL, IdSSLOpenSSL,
   Vcl.ExtCtrls, IdCoder, IdCoder3to4, IdCoderMIME, ComObj, ActiveX, Registry,
- Vcl.ComCtrls, Grids;
+ Vcl.ComCtrls, Grids, inifiles;
+
+ const MY_MESSAGE = WM_USER + 4242;
 
 type
 
@@ -21,6 +23,7 @@ type
       FormHandle: HWND;
       procedure IsTerminate(Sender : TObject);
   end;
+
 
 
   TMyGrid = class (TStringGrid);
@@ -46,20 +49,22 @@ type
     Button1: TButton;
 
 
-  
+
     procedure Button5Click(Sender: TObject);
     procedure btnOpenXlsClick(Sender: TObject);
     procedure btnSendEventsClick(Sender: TObject);
     procedure InsertEvent(Source:TStringStream);
     procedure btnGetGoogleCalendarsClick(Sender: TObject);
     procedure getCalendarsList;
-    procedure GetSecretCode;
     procedure btnConfirmClick(Sender: TObject );
     procedure CalendarsChange(Sender: TObject);
     procedure btnClearCalendarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure AddRegistry;
+    procedure MessageReceiver(var msg: TMessage); message MY_MESSAGE;
+
+
 
 
   private
@@ -70,7 +75,6 @@ type
      GoogleAuthThread: TGoogleAuthThread;
     { Public declarations }
   end;
-
 
 
 
@@ -85,18 +89,30 @@ var
    ExcelStatus, GAuothStatus:boolean;
   const ExcelApp = 'Excel.Application';
 
+
 implementation
    uses  Unit2, Unit3, Unit4, Unit5;
 {$R *.dfm}
 
 
+procedure TForm1.OnClickCb(Sender: TObject);
+    var tab:string;
+    begin
+      tab:=IntToStr(PageControl1.ActivePageIndex);
+     if (Sender as TCheckBox).Checked
+       then (PageControl1.Pages[PageControl1.ActivePageIndex].Components[2] as TEdit).Visible := true
+       else (PageControl1.Pages[PageControl1.ActivePageIndex].Components[2] as TEdit).Visible := false;
+    end;
+
+
+
+// display popup messages
 procedure ShowNotification(NotifMessage: string);
 begin
   //TNotification.Create(Self);
   Notification.NotifMessage.Caption:=NotifMessage;
   Notification.Show;
 end;
-
 
 //перевірка наявності встановленого Excel
 function CheckExcelInstall:boolean;
@@ -162,7 +178,7 @@ end;
 
 
 procedure xls_open(FileName:WideString);
-var Rows, TotalRows, Cols, i,j,z: integer;
+var Rows, TotalRows, Cols, i,j,z,m: integer;
     WorkSheet: OLEVariant;
     FData: OLEVariant;
     d: TDateTime;
@@ -172,15 +188,24 @@ var Rows, TotalRows, Cols, i,j,z: integer;
     Cb:TCheckBox;
     Te:TEdit;
 
+  key:string;
+  buf, attendee:string;
+  SaveSettings:TextFile;
+  s1: TStringList;
 
 begin
+    Settings:=TiniFile.Create(extractfilepath(paramstr(0))+'Settings.ini');
+       if (Settings.SectionExists('Attendees')) then
+   begin
+     s1 := TStringList.Create;
+     Settings.ReadSectionValues('Attendees',s1);
+  end;
+   // AssignFile(SettingsFile,extractfilepath(paramstr(0))+'Settings.ini');
       RunExcel;
-
   //открываем книгу
   MyExcel.Workbooks.Open(FileName);
-
 //выводим данные в таблицу
-
+ TotalRows:=0;
 for i :=1  to MyExcel.Sheets.Count do
   begin
   //получаем активный лист
@@ -207,20 +232,34 @@ for i :=1  to MyExcel.Sheets.Count do
 
       Cb:=TCheckBox.Create(NTab);
       Cb.Parent:=NTab;
-      //TCheckBox(Cb).OnClick:=OnClickCb;
+      TCheckBox(Cb).OnClick:=Form1.OnClickCb;
       Cb.Caption:='Поділитись...';
       Cb.Top:=225;
 
       Te:=TEdit.Create(NTab);
       Te.Parent:=NTab;
-      Te.Visible:=True;
-      Te.TextHint:='email';
+      Te.Visible:=true;
+      Te.Text:='email';
+      //set attendee emails
+      if (Settings.SectionExists('Attendees')) then
+        for m:=1 to s1.Count do
+        begin
+          attendee:=UTF8ToString(s1[m-1]);
+          key:=Copy(attendee, 1, Pos('=',attendee)-1);
+        if ((Pos('=',attendee) <> 0) and (key=MyExcel.ActiveWorkbook.Worksheets.Item[i].Name))
+          then begin
+          Te.Text:=(String(Copy(attendee, Pos( '=',attendee) + 1, Length(attendee) - Pos('=',attendee) ) ));
+          Cb.Checked:=true;
+          end;
+        end;
+
       Te.Top:=225;
       Te.Left:=150;
 
 
      end;
-   Sg.RowCount:=Rows;
+      Sg.RowCount:=Rows;
+      //TotalRows:=TotalRows+Rows;
       Sg.ColCount:=Cols;
     z:=0;
      (Form1.PageControl1.Pages[0].Components[0] as TStringGrid).Width := 470;
@@ -229,13 +268,21 @@ for i :=1  to MyExcel.Sheets.Count do
             while (z<=sg.RowCount-1) do begin
             for j := 0 to Cols-1 do
               sg.Cells[j,z]:=FData[z+1,j+1];
-              if Trim(Sg.Rows[z].Text) = '' then begin TMyGrid(Sg).DeleteRow(z); z:=z-1; TotalRows:=TotalRows-1;end;   //видалення пустих рядків
+              if Trim(Sg.Rows[z].Text) = '' then begin
+                TMyGrid(Sg).DeleteRow(z);
+                z:=z-1;
+                //TotalRows:=TotalRows-1;
+                end;   //видалення пустих рядків
               z:=z+1;
             end;
+            TotalRows:=TotalRows+z-1;
                      end;
 
+
    Form1.StatusBar1.Panels[0].width:=150;
-   Form1.StatusBar1.Panels[0].text:=Form1.StatusBar1.Panels[0].text+'Листів:'+String(MyExcel.Sheets.Count)+' Подій:-'+IntToStr(TotalRows);
+   Form1.StatusBar1.Panels[0].text:=Form1.StatusBar1.Panels[0].text+'Листів:'+String(MyExcel.Sheets.Count)+'  Рядків:-'+IntToStr(TotalRows);
+   s1.Free;
+   Settings.Free;
    StopExcel;
    ShowNotification('Excel file is loaded');
    ExcelStatus:=true;
@@ -263,14 +310,7 @@ end;
 
 
 
-procedure TForm1.OnClickCb(Sender: TObject);
-    var tab:string;
-    begin
-      tab:=IntToStr(PageControl1.ActivePageIndex);
-     if (Sender as TCheckBox).Checked
-       then (PageControl1.Pages[PageControl1.ActivePageIndex].Components[2] as TEdit).Visible := true
-       else (PageControl1.Pages[PageControl1.ActivePageIndex].Components[2] as TEdit).Visible := false;
-    end;
+
 
 
 procedure TForm1.btnSendEventsClick(Sender: TObject);
@@ -380,89 +420,16 @@ end;
 
 
 
-
-
-
-
-
-
-
-
- {
-function TasksGet(const ListID: string; TaskID: string): string;
-begin
-OAuth1.GetAccessToken
-Result := UTF8ToString(OAuth1.GetAccessToken);
-end;
-   }
-   {
-procedure TForm1.btnPostQueryClick(Sender: TObject);
-var
-  Json, URL, calendarID: string;
-  sResponse: string;
-    JsonToSend, Answer: TStringStream;
-begin
-    calendarID:='76pgvkbu9h1mr5r17i3ehps214@group.calendar.google.com';
-    URL:='https://www.googleapis.com/calendar/v3/calendars/76pgvkbu9h1mr5r17i3ehps214@group.calendar.google.com/events?access_token='+Token;
-
-        memo7.Text:=Url;
-        IdHTTP1.HandleRedirects := True;
-        IdHTTP1.Request.ContentType :='application/json';
-        IdHTTP1.Response.ContentType :='application/json';
-        IdHTTP1.Request.UserAgent:='Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36';
-        IdHTTP1.Request.Accept := 'application/json, text/javascript, */*; q=0.01';
-        IdHTTP1.Request.ContentType := 'application/x-www-form-urlencoded; charset=UTF-8';
-        idHTTP1.Request.CharSet := 'windows-1251';
-     try
-       JsonToSend:=TStringStream.Create;
-       try
-         Answer:=TStringStream.Create;
-         try
-         Memo4.Lines.SaveToStream(JsonToSend);
-         idHTTP1.Post(URL,JsonToSend,Answer);
-         memo6.Clear;
-         memo6.Lines.Add(Answer.DataString);
-         memo6.Text:=(UTF8Decode(Memo6.Text));
-       finally
-       Answer.Free;
-
-       end;
-     finally
-      JsonToSend.Free;
-
-     end;
-     except
-  on E:EIdHTTPProtocolException do
-    begin
-      memo6.Clear;
-       showmessage(E.ErrorMessage);
-      memo6.Lines.Add('-------------Error-------------');
-      memo6.Lines.Add('-------------ErrorMessage-------------');
-          end
-  else
-    raise;
-
-     end;
-end;
-   }
-
-
-
-
-
 procedure TForm1.btnGetGoogleCalendarsClick(Sender: TObject);
 begin
-GetSecretCode;
-end;
-
-procedure TForm1.GetSecretCode;
-begin
+//GetSecretCode;
 Form3.Show;
 Form3.PopupBrowser.Navigate(OAuth1.AccessURL);
-edToken.Visible:=true;
+//Token.Visible:=true;
 edToken.Text:=access;
-btnConfirm.Visible:=true;
+//nConfirm.Visible:=true;
 end;
+
 
 // повертає Token: вхідний параметр секретний ключ
 function getToken(SecretCode:string):string;
@@ -488,9 +455,6 @@ procedure TForm1.getCalendarsList;
   for I := 0 to JsonArray.Size-1 do
       Calendars.Items.Add((JsonArray.Get(i) as TJSONObject).Get('summary').JsonValue.Value);
  {Пари: Вивід Ключа}
-
-
-
   end;
 // Процес
 procedure TGoogleAuthThread.Execute;
@@ -507,9 +471,10 @@ begin
     //При завершении потока уменьшаем счётчик потоков на единицу.
     Form1.getCalendarsList;
     ShowNotification('Доступ до календарів Google отримано');
+    SendMessage(Form1.Handle,MY_MESSAGE,0,DWORD(PChar('Доступ до календарів Google отримано')));
     GAuothStatus:=true;
     Form1.Calendars.Visible:=true;
-    Form1.StatusBar1.Panels[1].text:=Form1.StatusBar1.Panels[0].text;
+    Form1.StatusBar1.Panels[1].text:=Form1.StatusBar1.Panels[1].text+' Доступ отримано';
      end;
 end;
 // Процес
@@ -709,7 +674,14 @@ begin
   end;
 end;
 
-
+ procedure TForm1.MessageReceiver(var msg: TMessage);
+ var
+   txt: PChar;
+ begin
+   txt := PChar(msg.lParam);
+   msg.Result := 1;
+   ShowMessage(txt);
+ end;
 
 
 end.
