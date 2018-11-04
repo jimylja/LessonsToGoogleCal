@@ -8,7 +8,7 @@ uses
   GoogleOAuth, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, DBXJSON,
   IdHTTP, IdIOHandler, IdStack, IdException, IdIOHandlerSocket, IdIOHandlerStack, IdSSL, IdSSLOpenSSL,
   Vcl.ExtCtrls, IdCoder, IdCoder3to4, IdCoderMIME, ComObj, ActiveX, Registry,
- Vcl.ComCtrls, Grids, inifiles;
+ Vcl.ComCtrls, Grids, inifiles, Vcl.Menus;
 
  const MY_MESSAGE = WM_USER + 4242;
 
@@ -46,7 +46,16 @@ type
     ComboBox1: TComboBox;
     ComboBox2: TComboBox;
     Label1: TLabel;
-    Button1: TButton;
+    MainMenu1: TMainMenu;
+    File1: TMenuItem;
+    Optios1: TMenuItem;
+    Info1: TMenuItem;
+    Exit1: TMenuItem;
+    Label2: TLabel;
+    Label3: TLabel;
+    Panel1: TPanel;
+    Timer1: TTimer;
+    cbSetAllAtendeers: TCheckBox;
 
 
 
@@ -60,9 +69,12 @@ type
     procedure CalendarsChange(Sender: TObject);
     procedure btnClearCalendarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
     procedure AddRegistry;
     procedure MessageReceiver(var msg: TMessage); message MY_MESSAGE;
+    procedure Optios1Click(Sender: TObject);
+    procedure Exit1Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure cbSetAllAtendeersClick(Sender: TObject);
 
 
 
@@ -106,12 +118,27 @@ procedure TForm1.OnClickCb(Sender: TObject);
 
 
 
+procedure TForm1.Optios1Click(Sender: TObject);
+begin
+ Form2.Show;
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  Form1.StatusBar1.Panels[3].Text:='';
+  Timer1.Enabled:=false;
+  Timer1.Interval:=5000;
+end;
+
 // display popup messages
 procedure ShowNotification(NotifMessage: string);
 begin
   //TNotification.Create(Self);
-  Notification.NotifMessage.Caption:=NotifMessage;
-  Notification.Show;
+  //Notification.NotifMessage.Caption:=NotifMessage;
+  Form1.StatusBar1.Panels[3].Text:=NotifMessage;
+  Form1.Timer1.Enabled:=true;
+  //Notification.Show;
+
 end;
 
 //перевірка наявності встановленого Excel
@@ -177,6 +204,8 @@ begin
 end;
 
 
+
+
 procedure xls_open(FileName:WideString);
 var Rows, TotalRows, Cols, i,j,z,m: integer;
     WorkSheet: OLEVariant;
@@ -195,7 +224,7 @@ var Rows, TotalRows, Cols, i,j,z,m: integer;
 
 begin
     Settings:=TiniFile.Create(extractfilepath(paramstr(0))+'Settings.ini');
-       if (Settings.SectionExists('Attendees')) then
+    if (Settings.SectionExists('Attendees')) then
    begin
      s1 := TStringList.Create;
      Settings.ReadSectionValues('Attendees',s1);
@@ -216,19 +245,26 @@ for i :=1  to MyExcel.Sheets.Count do
   NTab := TTabSheet.Create(Form1.PageControl1);
    with NTab do
     begin
-      PageControl := Form1.PageControl1;
+      PageControl:= Form1.PageControl1;
       Form1.PageControl1.Brush.Color  := RGB(211,231,232);
       Form1.PageControl1.Pages[PageIndex].Brush.Color:=clYellow;
-      PageControl.ClientWidth:=470;
+      PageControl.ClientWidth:=475;
       Ntab.ClientWidth:=470;
      // Caption := String(MyExcel.Sheets.Item[i].Name);
       caption:=String(MyExcel.ActiveWorkbook.Worksheets.Item[i].Name);
       Sg:=TStringGrid.Create(NTab);
       Sg.Parent:=NTab;
       Sg.FixedCols:=0;Sg.FixedRows:=0;
-      Sg.Clientwidth:=PageControl.ClientWidth;
+      Sg.Clientwidth:=PageControl.ClientWidth-20;
+      Sg.ShowHint:=True;
+      Sg.DefaultColWidth := 80;
+      Sg.ColWidths[0] := 25; //   index column
+      Sg.ColWidths[1] := 70; //   date column
+      Sg.ColWidths[2] := 30; //   lesson order colum
+      Sg.ColWidths[3] := 42; //   cabinet number
+      Sg.ColWidths[4] := 100; //   index column
       Sg.Height:=220;
-     // Sg.OnDrawCell:=SGDrawCell;
+      Sg.ScrollBars:=ssBoth;
 
       Cb:=TCheckBox.Create(NTab);
       Cb.Parent:=NTab;
@@ -280,13 +316,15 @@ for i :=1  to MyExcel.Sheets.Count do
 
 
    Form1.StatusBar1.Panels[0].width:=150;
-   Form1.StatusBar1.Panels[0].text:=Form1.StatusBar1.Panels[0].text+'Листів:'+String(MyExcel.Sheets.Count)+'  Рядків:-'+IntToStr(TotalRows);
+   Form1.StatusBar1.Panels[0].text:='Excel'+'Листів:'+String(MyExcel.Sheets.Count)+'  Рядків:-'+IntToStr(TotalRows);
    s1.Free;
    Settings.Free;
    StopExcel;
    ShowNotification('Excel file is loaded');
    ExcelStatus:=true;
+   Form1.Height:=400;
    Form1.PageControl1.Visible:=true;
+
 
 end;
 
@@ -316,7 +354,7 @@ end;
 procedure TForm1.btnSendEventsClick(Sender: TObject);
  var
   tabs, i,j,z:integer;
-  summary, dtstart, dtend, capt, desc,event, tab, guest,mail_guest:string;
+  summary, color_id, dtstart, dtend, capt, desc,event, tab, guest,mail_guest:string;
  //JSON
     JSONObject, InnerObject : TJSONObject;
     Pair : TJSONPair;
@@ -330,8 +368,8 @@ procedure TForm1.btnSendEventsClick(Sender: TObject);
   try
      for tabs:=0 to PageControl1.PageCount-1 do
     begin
-   // if ((PageControl1.Pages[tabs].Components[1] as TCheckBox).Checked = True) then
-                          mail_guest:=(PageControl1.Pages[tabs].Components[2] as TEdit).Text;
+   if ((PageControl1.Pages[tabs].Components[1] as TCheckBox).Checked = True) then
+      mail_guest:=(PageControl1.Pages[tabs].Components[2] as TEdit).Text;
     for z:=0 to PageControl1.Pages[tabs].ComponentCount-1 do
       if  PageControl1.Pages[tabs].Components[z] is TStringGrid then
         begin
@@ -384,7 +422,11 @@ procedure TForm1.btnSendEventsClick(Sender: TObject);
           Pair:=TJSONPair.Create('location','Кабінет '+(PageControl1.Pages[tabs].Components[z] as TStringGrid).Cells[3,i]);
           JSONObject.AddPair(Pair);
 
-          Pair:=TJSONPair.Create('colorId','2');
+
+          color_id:=String(PageControl1.Pages[tabs].Caption);
+          delete(color_id, length(color_id), 1);
+
+          Pair:=TJSONPair.Create('colorId',string(color_id));
           JSONObject.AddPair(Pair);
 
             Source1:=TStringStream.Create;
@@ -476,6 +518,10 @@ begin
     Form1.Calendars.Visible:=true;
     Form1.StatusBar1.Panels[1].text:=Form1.StatusBar1.Panels[1].text+' Доступ отримано';
      end;
+    Form1.Width:=Form1.Width+100;
+    Form1.Panel1.Left:=Form1.PageControl1.Left+Form1.PageControl1.Width+10;
+    Form1.Panel1.Top:=Form1.PageControl1.Top+10;
+    Form1.Panel1.Visible:=true;
 end;
 // Процес
 
@@ -571,10 +617,6 @@ end;
 
 
 
-procedure TForm1.Button1Click(Sender: TObject);
-begin
-Form2.Show;
-end;
 
 procedure TForm1.Button5Click(Sender: TObject);
 var JsonArray: TJSONArray;
@@ -623,9 +665,31 @@ begin
 
 
 
+procedure TForm1.cbSetAllAtendeersClick(Sender: TObject);
+  var tabs:integer;
+begin
+for tabs:=0 to PageControl1.PageCount-1 do
+    begin
+ if cbSetAllAtendeers.Checked then
+       (PageControl1.Pages[tabs].Components[1] as TCheckBox).Checked := True
+      //mail_guest:=(PageControl1.Pages[tabs].Components[2] as TEdit).Text;
+ else  (PageControl1.Pages[tabs].Components[1] as TCheckBox).Checked := False
+     end;
+end;
+
+procedure TForm1.Exit1Click(Sender: TObject);
+begin
+Form1.Close;
+end;
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
 Form1.Height:=150;
+Form1.Width:=600;
+Form1.PageControl1.Width:=510;
+Form1.Left:= (Screen.WorkAreaWidth - Form1.Width) div 2;
+Form1.Top:= (Screen.WorkAreaHeight - Form1.Height) div 2 - Screen.WorkAreaHeight div 4;
+
 PageControl1.Visible:=false;
 ExcelStatus:=false;
 GAuothStatus:=false;
@@ -634,10 +698,13 @@ btnConfirm.Visible:=false;
 Calendars.Visible:=false;
 btnSendEvents.Visible:=false;
 btnClearCalendar.Visible:=false;
+StatusBar1.Width:=Form1.Width;
 StatusBar1.Panels[0].width:=150;
-StatusBar1.Panels[0].text:='Excel: ';
+StatusBar1.Panels[0].text:='Excel: Не вказано';
 StatusBar1.Panels[1].width:=150;
-StatusBar1.Panels[1].text:='Google: ';
+StatusBar1.Panels[1].text:='Google: Немає доступу';
+
+StatusBar1.Panels[3].width:=200;
 
  //Короткое имя исполняемого файла программы (без пути к нему).
   ApplicationName := ExtractFileName( ParamStr(0) );

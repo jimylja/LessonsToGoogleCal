@@ -1,27 +1,22 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = 'Form1'
-  ClientHeight = 407
-  ClientWidth = 694
+  BorderStyle = bsToolWindow
+  Caption = 'ExcelToCalendar'
+  ClientHeight = 412
+  ClientWidth = 744
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  Menu = MainMenu1
   OldCreateOrder = False
   Position = poDesigned
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
-  object lbEventsCount: TLabel
-    Left = 529
-    Top = 97
-    Width = 72
-    Height = 13
-    Caption = #1059#1089#1100#1086#1075#1086' '#1087#1086#1076#1110#1081': '
-  end
   object Label1: TLabel
     Left = 120
     Top = 357
@@ -29,79 +24,127 @@ object Form1: TForm1
     Height = 13
     Caption = 'Label1'
   end
+  object Label2: TLabel
+    Left = 128
+    Top = 16
+    Width = 31
+    Height = 13
+    Caption = 'Label2'
+  end
+  object Label3: TLabel
+    Left = 328
+    Top = 16
+    Width = 31
+    Height = 13
+    Caption = 'Label3'
+  end
+  object Panel1: TPanel
+    Left = 521
+    Top = 8
+    Width = 176
+    Height = 137
+    Caption = 'Panel1'
+    TabOrder = 6
+    Visible = False
+    object lbEventsCount: TLabel
+      Left = 17
+      Top = 88
+      Width = 72
+      Height = 13
+      Caption = #1059#1089#1100#1086#1075#1086' '#1087#1086#1076#1110#1081': '
+    end
+    object ComboBox1: TComboBox
+      Left = 16
+      Top = 38
+      Width = 145
+      Height = 21
+      Hint = 'EventList'
+      TabOrder = 0
+      Text = 'ComboBox1'
+    end
+    object ComboBox2: TComboBox
+      Left = 16
+      Top = 65
+      Width = 145
+      Height = 21
+      Hint = 'Not Deleted'
+      TabOrder = 1
+      Text = 'ComboBox2'
+    end
+    object Calendars: TComboBox
+      Left = 16
+      Top = 11
+      Width = 145
+      Height = 21
+      TabOrder = 2
+      Text = 'Calendars'
+      OnChange = CalendarsChange
+    end
+    object btnSendEvents: TButton
+      Left = 10
+      Top = 103
+      Width = 72
+      Height = 25
+      Caption = 'SendEvents'
+      TabOrder = 3
+      OnClick = btnSendEventsClick
+    end
+    object btnClearCalendar: TButton
+      Left = 95
+      Top = 103
+      Width = 75
+      Height = 25
+      Caption = 'ClearCalendar'
+      TabOrder = 4
+      OnClick = btnClearCalendarClick
+    end
+  end
   object edToken: TEdit
-    Left = 175
+    Left = 239
     Top = 41
     Width = 168
     Height = 21
     TabOrder = 0
     Text = 'edToken'
   end
-  object Calendars: TComboBox
-    Left = 529
-    Top = 70
-    Width = 145
-    Height = 21
-    TabOrder = 1
-    Text = 'Calendars'
-    OnChange = CalendarsChange
-  end
   object btnOpenXls: TButton
-    Left = 33
+    Left = 41
     Top = 8
     Width = 75
     Height = 25
     Caption = 'btnOpenXls'
-    TabOrder = 2
+    TabOrder = 1
     OnClick = btnOpenXlsClick
   end
   object PageControl1: TPageControl
     Left = 8
-    Top = 76
+    Top = 60
     Width = 507
     Height = 281
-    TabOrder = 3
-  end
-  object btnSendEvents: TButton
-    Left = 521
-    Top = 177
-    Width = 72
-    Height = 25
-    Caption = 'SendEvents'
-    TabOrder = 4
-    OnClick = btnSendEventsClick
+    TabOrder = 2
   end
   object btnGetGoogleCalendars: TButton
-    Left = 25
-    Top = 39
+    Left = 209
+    Top = 8
     Width = 104
     Height = 25
     Caption = #1053#1072#1076#1072#1090#1080' '#1076#1086#1089#1090#1091#1087
-    TabOrder = 5
+    TabOrder = 3
     OnClick = btnGetGoogleCalendarsClick
   end
   object btnConfirm: TButton
-    Left = 349
+    Left = 413
     Top = 39
     Width = 75
     Height = 25
     Caption = #1055#1110#1076#1090#1074#1077#1088#1076#1080#1090#1080
-    TabOrder = 6
+    TabOrder = 4
     OnClick = btnConfirmClick
-  end
-  object btnClearCalendar: TButton
-    Left = 611
-    Top = 177
-    Width = 75
-    Height = 25
-    Caption = 'ClearCalendar'
-    TabOrder = 7
-    OnClick = btnClearCalendarClick
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 388
-    Width = 694
+    Top = 393
+    Width = 744
     Height = 19
     Panels = <
       item
@@ -112,34 +155,20 @@ object Form1: TForm1
       end
       item
         Width = 50
+      end
+      item
+        Alignment = taRightJustify
+        Width = 150
       end>
   end
-  object ComboBox1: TComboBox
-    Left = 529
-    Top = 118
-    Width = 145
-    Height = 21
-    Hint = 'EventList'
-    TabOrder = 9
-    Text = 'ComboBox1'
-  end
-  object ComboBox2: TComboBox
-    Left = 529
-    Top = 145
-    Width = 145
-    Height = 21
-    Hint = 'Not Deleted'
-    TabOrder = 10
-    Text = 'ComboBox2'
-  end
-  object Button1: TButton
-    Left = 599
-    Top = 8
-    Width = 75
-    Height = 25
-    Caption = 'Button1'
-    TabOrder = 11
-    OnClick = Button1Click
+  object cbSetAllAtendeers: TCheckBox
+    Left = 32
+    Top = 43
+    Width = 97
+    Height = 17
+    Caption = 'SetAllAttendees'
+    TabOrder = 7
+    OnClick = cbSetAllAtendeersClick
   end
   object IdHTTP1: TIdHTTP
     IOHandler = IdSSLIOHandlerSocketOpenSSL1
@@ -182,5 +211,28 @@ object Form1: TForm1
     ClientSecret = 'vKmGnP63NCKSkO2WKBODpNfJ'
     Left = 616
     Top = 264
+  end
+  object MainMenu1: TMainMenu
+    Left = 696
+    Top = 264
+    object File1: TMenuItem
+      Caption = '&File'
+      object Exit1: TMenuItem
+        Caption = 'Exit'
+        OnClick = Exit1Click
+      end
+    end
+    object Optios1: TMenuItem
+      Caption = '&Options'
+      OnClick = Optios1Click
+    end
+    object Info1: TMenuItem
+      Caption = 'Info'
+    end
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 696
+    Top = 304
   end
 end
