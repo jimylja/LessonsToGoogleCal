@@ -1,7 +1,7 @@
 object Form3: TForm3
   Left = 0
   Top = 0
-  Caption = #1044#1086#1089#1090#1091#1087' '#1076#1086' Google'
+  Caption = 'Form3'
   ClientHeight = 429
   ClientWidth = 585
   Color = clBtnFace

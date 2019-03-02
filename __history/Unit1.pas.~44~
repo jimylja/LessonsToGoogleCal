@@ -54,6 +54,8 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Panel1: TPanel;
+    Timer1: TTimer;
+    cbSetAllAtendeers: TCheckBox;
 
 
 
@@ -71,6 +73,8 @@ type
     procedure MessageReceiver(var msg: TMessage); message MY_MESSAGE;
     procedure Optios1Click(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure cbSetAllAtendeersClick(Sender: TObject);
 
 
 
@@ -119,13 +123,21 @@ begin
  Form2.Show;
 end;
 
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  Form1.StatusBar1.Panels[3].Text:='';
+  Timer1.Enabled:=false;
+  Timer1.Interval:=5000;
+end;
+
 // display popup messages
 procedure ShowNotification(NotifMessage: string);
 begin
   //TNotification.Create(Self);
-  Notification.NotifMessage.Caption:=NotifMessage;
+  //Notification.NotifMessage.Caption:=NotifMessage;
   Form1.StatusBar1.Panels[3].Text:=NotifMessage;
-  Notification.Show;
+  Form1.Timer1.Enabled:=true;
+  //Notification.Show;
 
 end;
 
@@ -212,7 +224,7 @@ var Rows, TotalRows, Cols, i,j,z,m: integer;
 
 begin
     Settings:=TiniFile.Create(extractfilepath(paramstr(0))+'Settings.ini');
-       if (Settings.SectionExists('Attendees')) then
+    if (Settings.SectionExists('Attendees')) then
    begin
      s1 := TStringList.Create;
      Settings.ReadSectionValues('Attendees',s1);
@@ -233,7 +245,7 @@ for i :=1  to MyExcel.Sheets.Count do
   NTab := TTabSheet.Create(Form1.PageControl1);
    with NTab do
     begin
-      PageControl := Form1.PageControl1;
+      PageControl:= Form1.PageControl1;
       Form1.PageControl1.Brush.Color  := RGB(211,231,232);
       Form1.PageControl1.Pages[PageIndex].Brush.Color:=clYellow;
       PageControl.ClientWidth:=475;
@@ -243,7 +255,7 @@ for i :=1  to MyExcel.Sheets.Count do
       Sg:=TStringGrid.Create(NTab);
       Sg.Parent:=NTab;
       Sg.FixedCols:=0;Sg.FixedRows:=0;
-
+      Sg.Clientwidth:=PageControl.ClientWidth-25;
       Sg.ShowHint:=True;
       Sg.DefaultColWidth := 80;
       Sg.ColWidths[0] := 25; //   index column
@@ -252,6 +264,7 @@ for i :=1  to MyExcel.Sheets.Count do
       Sg.ColWidths[3] := 42; //   cabinet number
       Sg.ColWidths[4] := 100; //   index column
       Sg.Height:=220;
+      Sg.ScrollBars:=ssBoth;
 
       Cb:=TCheckBox.Create(NTab);
       Cb.Parent:=NTab;
@@ -272,7 +285,7 @@ for i :=1  to MyExcel.Sheets.Count do
         if ((Pos('=',attendee) <> 0) and (key=MyExcel.ActiveWorkbook.Worksheets.Item[i].Name))
           then begin
           Te.Text:=(String(Copy(attendee, Pos( '=',attendee) + 1, Length(attendee) - Pos('=',attendee) ) ));
-          //Cb.Checked:=true;
+          Cb.Checked:=true;
           end;
         end;
 
@@ -652,6 +665,18 @@ begin
 
 
 
+procedure TForm1.cbSetAllAtendeersClick(Sender: TObject);
+  var tabs:integer;
+begin
+for tabs:=0 to PageControl1.PageCount-1 do
+    begin
+ if cbSetAllAtendeers.Checked then
+       (PageControl1.Pages[tabs].Components[1] as TCheckBox).Checked := True
+      //mail_guest:=(PageControl1.Pages[tabs].Components[2] as TEdit).Text;
+ else  (PageControl1.Pages[tabs].Components[1] as TCheckBox).Checked := False
+     end;
+end;
+
 procedure TForm1.Exit1Click(Sender: TObject);
 begin
 Form1.Close;
@@ -673,6 +698,7 @@ btnConfirm.Visible:=false;
 Calendars.Visible:=false;
 btnSendEvents.Visible:=false;
 btnClearCalendar.Visible:=false;
+StatusBar1.Width:=Form1.Width;
 StatusBar1.Panels[0].width:=150;
 StatusBar1.Panels[0].text:='Excel: Не вказано';
 StatusBar1.Panels[1].width:=150;

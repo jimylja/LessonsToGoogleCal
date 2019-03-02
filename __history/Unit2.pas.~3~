@@ -40,6 +40,7 @@ type
       var CanSelect: Boolean);
     procedure StringGrid1GetEditText(Sender: TObject; ACol, ARow: Integer;
       var Value: string);
+    procedure StringGrid2Click(Sender: TObject);
 
 
 
@@ -188,8 +189,8 @@ begin
   def:=StrToTime(StringGrid1.Cells[1,row+1])-StrToTime(StringGrid1.Cells[2,row]);
 //  StringGrid1.Cells[2,row]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[1,row])+(StrToInt(Edit1.Text))/(24*60));
   StringGrid1.Cells[2,row]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[1,row])+(StrToInt(Edit1.Text))/(24*60));
-  if (row <> 8) then
-  StringGrid1.Cells[1,row+1]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[2,row])+def);
+ if (row <> 8) then
+ StringGrid1.Cells[1,row+1]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[2,row])+def);
 end;
 
 
@@ -279,6 +280,10 @@ end;
 
 
 
+ procedure TForm2.StringGrid2Click(Sender: TObject);
+begin
+
+end;
 
 //Delete ???????
 function TStringGrid.GetCells(ACol, ARow: Integer): string;

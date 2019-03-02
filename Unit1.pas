@@ -51,11 +51,10 @@ type
     Optios1: TMenuItem;
     Info1: TMenuItem;
     Exit1: TMenuItem;
-    Label2: TLabel;
-    Label3: TLabel;
     Panel1: TPanel;
     Timer1: TTimer;
     cbSetAllAtendeers: TCheckBox;
+    Label3: TLabel;
 
 
 
@@ -75,7 +74,7 @@ type
     procedure Exit1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure cbSetAllAtendeersClick(Sender: TObject);
-
+    
 
 
 
@@ -255,7 +254,7 @@ for i :=1  to MyExcel.Sheets.Count do
       Sg:=TStringGrid.Create(NTab);
       Sg.Parent:=NTab;
       Sg.FixedCols:=0;Sg.FixedRows:=0;
-      Sg.Clientwidth:=PageControl.ClientWidth-20;
+      Sg.Clientwidth:=PageControl.ClientWidth-25;
       Sg.ShowHint:=True;
       Sg.DefaultColWidth := 80;
       Sg.ColWidths[0] := 25; //   index column
@@ -513,15 +512,19 @@ begin
     //При завершении потока уменьшаем счётчик потоков на единицу.
     Form1.getCalendarsList;
     ShowNotification('Доступ до календарів Google отримано');
-    SendMessage(Form1.Handle,MY_MESSAGE,0,DWORD(PChar('Доступ до календарів Google отримано')));
+    //SendMessage(Form1.Handle,MY_MESSAGE,0,DWORD(PChar('Доступ до календарів Google отримано')));
     GAuothStatus:=true;
     Form1.Calendars.Visible:=true;
-    Form1.StatusBar1.Panels[1].text:=Form1.StatusBar1.Panels[1].text+' Доступ отримано';
+    Form1.StatusBar1.Panels[1].text:='Google: Доступ отримано';
      end;
     Form1.Width:=Form1.Width+100;
-    Form1.Panel1.Left:=Form1.PageControl1.Left+Form1.PageControl1.Width+10;
-    Form1.Panel1.Top:=Form1.PageControl1.Top+10;
+    Form1.Width:=Form1.Width+40;
+    //Form1.Panel1.Left:=Form1.PageControl1.Left+Form1.PageControl1.Width+10;
+    //Form1.Panel1.Top:=Form1.PageControl1.Top+10;
+    Form1.Panel1.Top:=Form1.btnGetGoogleCalendars.Top;
+    Form1.Panel1.Left:=Form1.btnGetGoogleCalendars.Left+120;
     Form1.Panel1.Visible:=true;
+    Form1.cbSetAllAtendeers.Visible:=true;
 end;
 // Процес
 
@@ -610,6 +613,8 @@ except
     raise;
 end;
 end;
+
+
 
 
 // !!!!DELETE ??????????

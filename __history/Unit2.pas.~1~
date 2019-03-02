@@ -21,6 +21,7 @@ type
   TForm2 = class(TForm)
     StringGrid1: TStringGrid;
     GroupBox1: TGroupBox;
+    GroupBox2: TGroupBox;
     Edit1: TEdit;
     cbFixDuration: TCheckBox;
     btnSaveSettings: TButton;
@@ -40,6 +41,7 @@ type
       var CanSelect: Boolean);
     procedure StringGrid1GetEditText(Sender: TObject; ACol, ARow: Integer;
       var Value: string);
+    procedure StringGrid2Click(Sender: TObject);
 
 
 
@@ -92,14 +94,13 @@ begin
   Edit1.Text:='';
 end;
 
-
 procedure TForm2.Edit1Exit(Sender: TObject);
   var i:integer;
 begin
-    ShowMessage(Edit1.Text);
    if (Edit1.Text='') or (Edit1.Text='0') then Edit1.Text:=time;
     if cbFixDuration.Checked then
-    for i:=1 to 6 do RecalcEndTime(Edit1.Text, i);
+    for i:=1 to 7 do RecalcEndTime(Edit1.Text, i);
+
 end;
 
 procedure TForm2.Edit1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -117,7 +118,8 @@ procedure TForm2.FormCreate(Sender: TObject);
 begin
   Form2.Caption:='Налаштування';
     time:='45';
-    Edit1.Text:='45';
+    Edit1.Text:='0';
+
 StringGrid1.Cells[1,0] := 'Початок';
 StringGrid1.Cells[2,0] := 'Кінець';
   for i:= 1 to 8 do StringGrid1.Cells[0,i]:=IntToStr(i)+' урок';
@@ -161,11 +163,16 @@ StringGrid1.Cells[2,0] := 'Кінець';
 
    for i:=1 to s1.Count do begin
     attendee:=UTF8ToString(s1[i-1]);
-    AttendeesList.Cells[0,i] :=Copy(attendee, 1, Pos('=',attendee)-1); //до  разделителя
-    AttendeesList.Cells[1,i] :=Copy(attendee, Pos('=',attendee)+2, Length(attendee));//после разделителя (+2) знаки после ; включая ;
+    AttendeesList.Cells[1,i] :=Copy(attendee, 1, Pos('=',attendee)-1); //до  разделителя
+    AttendeesList.Cells[2,i] :=Copy(attendee, Pos('=',attendee)+2, Length(attendee));//после разделителя (+2) знаки после ; включая ;
    end;
    end;
      s1.Free;
+
+
+
+
+
  Settings.Free;
 
 
@@ -186,10 +193,9 @@ begin
  // for i:=1 to 7 do StringGrid1.Cells[2,i]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[1,i])+(StrToInt(Edit2.Text))/(24*60));
  if (row <> 8) then
   def:=StrToTime(StringGrid1.Cells[1,row+1])-StrToTime(StringGrid1.Cells[2,row]);
-//  StringGrid1.Cells[2,row]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[1,row])+(StrToInt(Edit1.Text))/(24*60));
   StringGrid1.Cells[2,row]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[1,row])+(StrToInt(Edit1.Text))/(24*60));
-  if (row <> 8) then
-  StringGrid1.Cells[1,row+1]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[2,row])+def);
+ if (row <> 8) then
+ StringGrid1.Cells[1,row+1]:=FormatDateTime('hh:mm',StrToTime(StringGrid1.Cells[2,row])+def);
 end;
 
 
@@ -279,6 +285,10 @@ end;
 
 
 
+ procedure TForm2.StringGrid2Click(Sender: TObject);
+begin
+
+end;
 
 //Delete ???????
 function TStringGrid.GetCells(ACol, ARow: Integer): string;
