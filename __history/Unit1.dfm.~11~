@@ -116,7 +116,7 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 230
     Top = 8
-    Width = 155
+    Width = 235
     Height = 65
     TabOrder = 6
     Visible = False

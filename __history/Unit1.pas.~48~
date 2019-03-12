@@ -51,11 +51,10 @@ type
     Optios1: TMenuItem;
     Info1: TMenuItem;
     Exit1: TMenuItem;
-    Label2: TLabel;
-    Label3: TLabel;
     Panel1: TPanel;
     Timer1: TTimer;
     cbSetAllAtendeers: TCheckBox;
+    Label3: TLabel;
 
 
 
@@ -75,7 +74,7 @@ type
     procedure Exit1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure cbSetAllAtendeersClick(Sender: TObject);
-
+    
 
 
 
@@ -245,7 +244,7 @@ for i :=1  to MyExcel.Sheets.Count do
   NTab := TTabSheet.Create(Form1.PageControl1);
    with NTab do
     begin
-      PageControl := Form1.PageControl1;
+      PageControl:= Form1.PageControl1;
       Form1.PageControl1.Brush.Color  := RGB(211,231,232);
       Form1.PageControl1.Pages[PageIndex].Brush.Color:=clYellow;
       PageControl.ClientWidth:=475;
@@ -255,7 +254,7 @@ for i :=1  to MyExcel.Sheets.Count do
       Sg:=TStringGrid.Create(NTab);
       Sg.Parent:=NTab;
       Sg.FixedCols:=0;Sg.FixedRows:=0;
-
+      Sg.Clientwidth:=PageControl.ClientWidth-25;
       Sg.ShowHint:=True;
       Sg.DefaultColWidth := 80;
       Sg.ColWidths[0] := 25; //   index column
@@ -264,6 +263,7 @@ for i :=1  to MyExcel.Sheets.Count do
       Sg.ColWidths[3] := 42; //   cabinet number
       Sg.ColWidths[4] := 100; //   index column
       Sg.Height:=220;
+      Sg.ScrollBars:=ssBoth;
 
       Cb:=TCheckBox.Create(NTab);
       Cb.Parent:=NTab;
@@ -321,7 +321,7 @@ for i :=1  to MyExcel.Sheets.Count do
    StopExcel;
    ShowNotification('Excel file is loaded');
    ExcelStatus:=true;
-   Form1.Height:=400;
+   Form1.Height:=415;
    Form1.PageControl1.Visible:=true;
 
 
@@ -512,15 +512,19 @@ begin
     //При завершении потока уменьшаем счётчик потоков на единицу.
     Form1.getCalendarsList;
     ShowNotification('Доступ до календарів Google отримано');
-    SendMessage(Form1.Handle,MY_MESSAGE,0,DWORD(PChar('Доступ до календарів Google отримано')));
+    //SendMessage(Form1.Handle,MY_MESSAGE,0,DWORD(PChar('Доступ до календарів Google отримано')));
     GAuothStatus:=true;
     Form1.Calendars.Visible:=true;
-    Form1.StatusBar1.Panels[1].text:=Form1.StatusBar1.Panels[1].text+' Доступ отримано';
+    Form1.StatusBar1.Panels[1].text:='Google: Доступ отримано';
      end;
     Form1.Width:=Form1.Width+100;
-    Form1.Panel1.Left:=Form1.PageControl1.Left+Form1.PageControl1.Width+10;
-    Form1.Panel1.Top:=Form1.PageControl1.Top+10;
+    Form1.Width:=Form1.Width+40;
+    //Form1.Panel1.Left:=Form1.PageControl1.Left+Form1.PageControl1.Width+10;
+    //Form1.Panel1.Top:=Form1.PageControl1.Top+10;
+    Form1.Panel1.Top:=Form1.btnGetGoogleCalendars.Top;
+    Form1.Panel1.Left:=Form1.btnGetGoogleCalendars.Left+120;
     Form1.Panel1.Visible:=true;
+    Form1.cbSetAllAtendeers.Visible:=true;
 end;
 // Процес
 
@@ -611,6 +615,8 @@ end;
 end;
 
 
+
+
 // !!!!DELETE ??????????
 
 
@@ -683,9 +689,11 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-Form1.Height:=150;
+Form1.Height:=160;
 Form1.Width:=600;
 Form1.PageControl1.Width:=510;
+Form1.PageControl1.Top:=Form1.PageControl1.Top+20;
+
 Form1.Left:= (Screen.WorkAreaWidth - Form1.Width) div 2;
 Form1.Top:= (Screen.WorkAreaHeight - Form1.Height) div 2 - Screen.WorkAreaHeight div 4;
 

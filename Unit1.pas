@@ -321,7 +321,7 @@ for i :=1  to MyExcel.Sheets.Count do
    StopExcel;
    ShowNotification('Excel file is loaded');
    ExcelStatus:=true;
-   Form1.Height:=400;
+   Form1.Height:=415;
    Form1.PageControl1.Visible:=true;
 
 
@@ -517,8 +517,7 @@ begin
     Form1.Calendars.Visible:=true;
     Form1.StatusBar1.Panels[1].text:='Google: Доступ отримано';
      end;
-    Form1.Width:=Form1.Width+100;
-    Form1.Width:=Form1.Width+40;
+//    Form1.Width:=Form1.Width+100;
     //Form1.Panel1.Left:=Form1.PageControl1.Left+Form1.PageControl1.Width+10;
     //Form1.Panel1.Top:=Form1.PageControl1.Top+10;
     Form1.Panel1.Top:=Form1.btnGetGoogleCalendars.Top;
@@ -638,7 +637,8 @@ var i:integer; JsonArray,JsonArrayEvents: TJSONArray;
   URL, EventId:string;
   Events:TJSONObject;
 begin
-   btnClearCalendar.Visible:=true;
+  btnClearCalendar.Visible:=true;
+  Form1.Panel1.Width:=235;
   if (ExcelStatus and GAuothStatus) then btnSendEvents.Visible:=true;
   lbEventsCount.Caption:='Усього подій: ';
   ComboBox1.Clear;
@@ -689,9 +689,11 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-Form1.Height:=150;
+Form1.Height:=160;
 Form1.Width:=600;
 Form1.PageControl1.Width:=510;
+Form1.PageControl1.Top:=Form1.PageControl1.Top+20;
+
 Form1.Left:= (Screen.WorkAreaWidth - Form1.Width) div 2;
 Form1.Top:= (Screen.WorkAreaHeight - Form1.Height) div 2 - Screen.WorkAreaHeight div 4;
 
